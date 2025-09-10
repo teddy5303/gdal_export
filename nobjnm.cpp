@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) {
 
     // --- 2. 初始化 GDAL ---
     GDALAllRegister();
+    CPLSetConfigOption("OGR_WKT_PRECISION", "8");
 
     // CPLSetConfigOption("GDAL_DATA", "D:/vcpkg/installed/x64-windows/share/gdal");
 
@@ -153,9 +154,10 @@ int main(int argc, char* argv[]) {
                             std::cout << "  - 发现图层: '" << layerName << "', 包含 '" << filterField << "' 字段，将应用过滤器" << std::endl;
 
                             std::stringstream ss;
-                            ss << "SELECT ST_MakeValid(geometry) AS WKT, '" << level << "' AS LEVEL, '" << layerName << "' AS LAYERS, "
-                               << "\"" << filterField << "\" FROM \"" << layerName
-                               << "\" WHERE \"" << filterField << "\" IS NOT NULL AND \"" << filterField << "\" != ''";
+                            ss << "SELECT ST_MakeValid(ST_SimplifyPreserveTopology(geometry, 0.00025)) AS WKT, '" << level
+                               << "' AS LEVEL, '" << layerName << "' AS LAYERS, "
+                               << "\"" << filterField << "\" FROM \"" << layerName << "\" WHERE \"" << filterField
+                               << "\" IS NOT NULL AND \"" << filterField << "\" != ''";
 
                             sql_parts.push_back(ss.str());
                         } else {

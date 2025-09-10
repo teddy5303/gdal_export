@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
 
     // --- 2. 初始化 GDAL ---
     GDALAllRegister();
+    CPLSetConfigOption("OGR_WKT_PRECISION", "8");
 
     // --- 3. 定义图层到深度字段的映射关系 (脚本逻辑的C++实现) ---
     const std::map<std::string, std::string> depth_map = {
@@ -116,7 +117,9 @@ int main(int argc, char* argv[]) {
                     if (poLayer) { // 图层存在
                         if (layerName == "LNDARE") {
                             std::cout << "  - 发现陆地区域: '" << layerName << "', 设置深度为 -1" << std::endl;
-                            sql_parts.push_back("SELECT ST_MakeValid(geometry) AS geometry, '" + layerName + "' AS LAYERS, CAST(-1 AS REAL) AS DEPTH FROM \"" + layerName + "\"");
+                            sql_parts.push_back("SELECT ST_MakeValid(ST_SimplifyPreserveTopology(geometry, 0.00025)) AS WKT, '" +
+                                                layerName + "' AS LAYERS, CAST(-1 AS REAL) AS DEPTH FROM \"" +
+                                                layerName + "\"");
                         } else {
                             auto it = depth_map.find(layerName);
                             if (it != depth_map.end()) {
@@ -124,8 +127,10 @@ int main(int argc, char* argv[]) {
                                 std::cout << "  - 发现深度图层: '" << layerName << "', 使用字段 '" << depthField << "'" << std::endl;
 
                                 std::stringstream ss;
-                                ss << "SELECT ST_MakeValid(geometry) AS geometry, '" << layerName << "' AS LAYERS, CAST(\"" << depthField << "\" AS REAL) AS DEPTH FROM \"" << layerName
-                                    << "\" WHERE \"" << depthField << "\" IS NOT NULL AND \"" << depthField << "\" != ''";
+                                ss << "SELECT ST_MakeValid(ST_SimplifyPreserveTopology(geometry, 0.00025)) AS WKT, '" << layerName
+                                   << "' AS LAYERS, CAST(\"" << depthField << "\" AS REAL) AS DEPTH FROM \""
+                                   << layerName << "\" WHERE \"" << depthField << "\" IS NOT NULL AND \"" << depthField
+                                   << "\" != ''";
                                 sql_parts.push_back(ss.str());
                             }
                         }
