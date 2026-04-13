@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     // --- 3. 定义图层到深度字段的映射关系 (脚本逻辑的C++实现) ---
     const std::map<std::string, std::string> depth_map = {
-        {"SOUNDG", "DEPTH"}, // 特殊：由 -oo ADD_SOUNDG_DEPTH=ON 生成
+        {"SOUNDG", "DEPTH"},  
         {"DEPARE", "DRVAL1"},
         {"DRGARE", "DRVAL1"},
         {"DEPCNT", "VALDCO"},
